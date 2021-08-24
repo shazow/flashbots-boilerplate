@@ -2,6 +2,7 @@ import { BigNumber, providers, Wallet } from "https://esm.sh/ethers";
 import { FlashbotsBundleProvider, FlashbotsBundleResolution } from "https://esm.sh/@flashbots/ethers-provider-bundle";
 
 const FLASHBOTS_AUTH_KEY = Deno.env.get('FLASHBOTS_AUTH_KEY');
+const WALLET_PRIVATE_KEY = Deno.env.get('WALLET_PRIVATE_KEY');
 
 const GWEI = BigNumber.from(10).pow(9);
 const PRIORITY_FEE = GWEI.mul(3);
@@ -15,8 +16,9 @@ const FLASHBOTS_EP = 'https://relay-goerli.flashbots.net/';
 // Ref: https://github.com/flashbots/ethers-provider-flashbots-bundle/blob/master/src/demo.ts
 
 async function main() {
-  const authSigner = FLASHBOTS_AUTH_KEY ? new Wallet(FLASHBOTS_AUTH_KEY) : Wallet.createRandom()
-  const wallet = new Wallet(Deno.env.get('PRIVATE_KEY') || '', provider)
+  const authSigner = FLASHBOTS_AUTH_KEY ? new Wallet(FLASHBOTS_AUTH_KEY) : Wallet.createRandom();
+  const wallet = WALLET_PRIVATE_KEY ? new Wallet(WALLET_PRIVATE_KEY, provider) : Wallet.createRandom();
+
   const flashbotsProvider = await FlashbotsBundleProvider.create(provider, authSigner, FLASHBOTS_EP);
 
   const block = await provider.getBlock('latest');
@@ -42,7 +44,6 @@ async function main() {
 
   const targetBlock = block.number + BLOCKS_IN_THE_FUTURE;
   const simulation = await flashbotsProvider.simulate(signedTransactions, targetBlock);
-
 
   if ('error' in simulation) {
     console.warn(`Simulation Error: ${simulation.error.message}`);
@@ -72,3 +73,5 @@ async function main() {
 export function bundle(a: string): void {
   console.log("foo");
 }
+
+await main();
